@@ -1,0 +1,55 @@
+import pandas as pd
+import numpy as np
+
+# Set a seed for reproducibility
+np.random.seed(42)
+
+# Number of records
+num_records = 10000
+
+# Generate synthetic data for existing features
+temperature = np.random.uniform(10, 40, num_records)  # Temperature between 10 and 40°C
+rainfall = np.random.uniform(100, 1000, num_records)  # Rainfall between 100 and 1000 mm
+soil_quality = np.random.randint(1, 11, num_records)  # Soil quality index between 1 and 10
+fertilizer_use = np.random.uniform(50, 300, num_records)  # Fertilizer use between 50 and 300 kg/hectare
+humidity = np.random.uniform(30, 90, num_records)  # Humidity between 30 and 90%
+pesticide_use = np.random.uniform(0, 50, num_records)  # Pesticide use between 0 and 50 kg/hectare
+sunlight_hours = np.random.uniform(1000, 3000, num_records)  # Sunlight hours between 1000 and 3000
+plant_density = np.random.uniform(5000, 30000, num_records)  # Plant density between 5000 and 30000 plants/hectare
+irrigation = np.random.uniform(0, 500, num_records)  # Irrigation water between 0 and 500 mm
+crop_type = np.random.choice(['Wheat', 'Corn', 'Soybean', 'Rice'], num_records)  # Randomly choosing crop types
+farm_area = np.random.uniform(1, 100, num_records)  # Farm area between 1 and 100 hectares
+
+# Assuming a more complex relationship with some noise for crop yield
+crop_yield = (
+    0.25 * temperature + 
+    0.15 * rainfall + 
+    1.2 * soil_quality + 
+    0.35 * fertilizer_use + 
+    0.2 * humidity + 
+    0.1 * pesticide_use + 
+    0.25 * sunlight_hours + 
+    0.3 * (plant_density / 10000) + 
+    0.2 * irrigation + 
+    0.05 * farm_area +  # Adding influence of farm area
+    np.random.normal(0, 10, num_records)  # Adding some noise
+)
+
+# Create a DataFrame
+data = pd.DataFrame({
+    'temperature': temperature,
+    'rainfall': rainfall,
+    'soil_quality': soil_quality,
+    'fertilizer_use': fertilizer_use,
+    'humidity': humidity,
+    'pesticide_use': pesticide_use,
+    'sunlight_hours': sunlight_hours,
+    'plant_density': plant_density,
+    'irrigation': irrigation,
+    'crop_type': crop_type,
+    'farm_area': farm_area,
+    'crop_yield': crop_yield
+})
+
+# Save the dataset to a CSV file
+data.to_csv('synthetic_crop_yield_data_with_farm_area.csv', index=False)
