@@ -84,6 +84,6 @@ if st.button('Predict Crop Yield'):
     st.write(input_features)
     try:
         prediction = model_pred(input_features)
-        st.write(f'The predicted crop yield is: {prediction[0]:.2f} units')
+        st.write(f'The predicted crop yield is:', str(prediction))
     except Exception as e:
         st.write(f"An error occurred: {e}")
