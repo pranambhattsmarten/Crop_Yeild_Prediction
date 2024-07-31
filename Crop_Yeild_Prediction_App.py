@@ -1,7 +1,6 @@
 import streamlit as st
-import pandas as pd
-import numpy as np
 import pickle
+import pandas as pd
 
 st.header('Crop Yield Prediction App')
 
@@ -30,8 +29,7 @@ with col1:
     pesticide_use = st.number_input("Enter amount of pesticide used on the crops")
 
 with col2:
-    sunlight_hours = st.number_input(
-        "Enter total number of sunlight hours the crops received during the growing season")
+    sunlight_hours = st.number_input("Enter total number of sunlight hours the crops received during the growing season")
 
 col1, col2 = st.columns(2)
 
@@ -46,7 +44,8 @@ col1, col2 = st.columns(2)
 with col1:
     crop_type_inp = st.selectbox(
         "What type of crop being grown?",
-        ("Corn", "Rice", "Soybean", "Wheat"))
+        ("Corn", "Rice", "Soybean", "Wheat")
+    )
 
 with col2:
     farm_area = st.number_input("Enter total area of the farm")
@@ -59,31 +58,41 @@ crop_type_mapping = {
     "Wheat": 4
 }
 
-# Preprocess the input features manually
-def preprocess_input(temp, rain, soil_quality, humidity, fertilizer_use, pesticide_use, sunlight_hours,
-                     plant_density, irrigation, crop_type_inp, farm_area):
-    crop_type_encoded = crop_type_mapping[crop_type_inp]
-    input_features = pd.DataFrame(
-        [[temp, rain, soil_quality, humidity, fertilizer_use, pesticide_use, sunlight_hours,
-          plant_density, irrigation, crop_type_encoded, farm_area]],
-        columns=['temperature', 'rainfall', 'soil_quality', 'humidity', 'fertilizer_use', 'pesticide_use',
-                 'sunlight_hours', 'plant_density', 'irrigation', 'crop_type', 'farm_area']
-    )
-    return input_features
+crop_type_encoded = crop_type_mapping[crop_type_inp]
 
-# Function to load the model and make predictions
-def model_pred(input_features):
-    with open('best_model.pkl', 'rb') as file:
-        model = pickle.load(file)
-    return model.predict(input_features)
+# Load the model and the scaler
+with open('best_model.pkl', 'rb') as file:
+    model = pickle.load(file)
+
+with open('scaler.pkl', 'rb') as file:
+    scaler = pickle.load(file)
+
+# Function to preprocess the input features
+def preprocess_input(temp, rain, soil_quality, fertilizer_use, humidity, pesticide_use, sunlight_hours,
+                     plant_density, irrigation, crop_type_encoded, farm_area):
+    input_data = pd.DataFrame([[
+        temp, rain, soil_quality, fertilizer_use, humidity, pesticide_use, sunlight_hours,
+        plant_density, irrigation, crop_type_encoded, farm_area
+    ]], columns=[
+        'temperature', 'rainfall', 'soil_quality', 'fertilizer_use', 'humidity',
+        'pesticide_use', 'sunlight_hours', 'plant_density', 'irrigation',
+        'crop_type', 'farm_area'
+    ])
+
+    input_data[['temperature', 'rainfall', 'soil_quality', 'fertilizer_use', 'humidity',
+                'pesticide_use', 'sunlight_hours', 'plant_density', 'irrigation',
+                'farm_area']] = scaler.transform(input_data[['temperature', 'rainfall',
+                                                             'soil_quality', 'fertilizer_use', 'humidity',
+                                                             'pesticide_use', 'sunlight_hours',
+                                                             'plant_density', 'irrigation', 'farm_area']])
+
+    return input_data
 
 # Button to make predictions
 if st.button('Predict Crop Yield'):
-    input_features = preprocess_input(temp, rain, soil_quality, humidity, fertilizer_use, pesticide_use, sunlight_hours,
-                                      plant_density, irrigation, crop_type_inp, farm_area)
-    st.write(input_features)
-    try:
-        prediction = model_pred(input_features)
-        st.write(f'The predicted crop yield is:', str(prediction))
-    except Exception as e:
-        st.write(f"An error occurred: {e}")
+    input_features = preprocess_input(
+        temp, rain, soil_quality, fertilizer_use, humidity, pesticide_use, sunlight_hours,
+        plant_density, irrigation, crop_type_encoded, farm_area
+    )
+    prediction = model.predict(input_features)
+    st.write("Predicted Crop Yield is: ", prediction[0])
