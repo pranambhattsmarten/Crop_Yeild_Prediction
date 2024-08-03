@@ -62,30 +62,29 @@ crop_type_encoded = crop_type_mapping[crop_type_inp]
 
 # Load the model and the scaler
 with open('best_model.pkl', 'rb') as file:
-    model = pickle.load(file)
+    data = pickle.load(file)
+    model = data["model"]
+    scaler = data["scaler"]
 
-with open('scaler.pkl', 'rb') as file:
-    scaler = pickle.load(file)
+# with open('scaler.pkl', 'rb') as file:
+#     scaler = pickle.load(file)
 
 # Function to preprocess the input features
 def preprocess_input(temp, rain, soil_quality, fertilizer_use, humidity, pesticide_use, sunlight_hours,
                      plant_density, irrigation, crop_type_encoded, farm_area):
+    print("Processing inputs")
+    columns = ['temperature', 'rainfall', 'soil_quality', 'fertilizer_use', 'humidity',
+       'pesticide_use', 'sunlight_hours', 'plant_density', 'irrigation',
+       'crop_type', 'farm_area']
     input_data = pd.DataFrame([[
         temp, rain, soil_quality, fertilizer_use, humidity, pesticide_use, sunlight_hours,
         plant_density, irrigation, crop_type_encoded, farm_area
-    ]], columns=[
-        'temperature', 'rainfall', 'soil_quality', 'fertilizer_use', 'humidity',
-        'pesticide_use', 'sunlight_hours', 'plant_density', 'irrigation',
-        'crop_type', 'farm_area'
-    ])
-
-    input_data[['temperature', 'rainfall', 'soil_quality', 'fertilizer_use', 'humidity',
-                'pesticide_use', 'sunlight_hours', 'plant_density', 'irrigation',
-                'farm_area']] = scaler.transform(input_data[['temperature', 'rainfall',
-                                                             'soil_quality', 'fertilizer_use', 'humidity',
-                                                             'pesticide_use', 'sunlight_hours',
-                                                             'plant_density', 'irrigation', 'farm_area']])
-
+    ]], columns=columns)
+    num_ft =  ['temperature', 'rainfall', 'soil_quality', 'humidity', 'fertilizer_use',
+                      'pesticide_use', 'sunlight_hours', 'plant_density', 'irrigation', 'farm_area']
+    print("Empty dataframe created:\n {}".format(input_data.loc[:, num_ft]))
+    input_data.loc[:, num_ft] = scaler.transform(input_data.loc[:, num_ft])
+    print("Dataframe created:\n {}".format(input_data))
     return input_data
 
 # Button to make predictions
@@ -94,5 +93,6 @@ if st.button('Predict Crop Yield'):
         temp, rain, soil_quality, fertilizer_use, humidity, pesticide_use, sunlight_hours,
         plant_density, irrigation, crop_type_encoded, farm_area
     )
+    print(input_features)
     prediction = model.predict(input_features)
     st.write("Predicted Crop Yield is: ", prediction[0])
